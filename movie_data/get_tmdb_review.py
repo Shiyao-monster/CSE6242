@@ -133,7 +133,7 @@ if __name__ == "__main__":
     
     headers = {
             "accept": "application/json",
-            "Authorization": "Bearer XXXXX" #add your Authoriztion token
+            "Authorization": "Bearer XXXXX" #add your TMDB Authoriztion token
     }
     tmdb_api_utils = TMDBAPIUtils(headers)
 

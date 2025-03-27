@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Region Movie Details</title>
+    <script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="regionTitle">Movie Details</h1>
+    <table id="movieTable">
+        <thead>
+            <tr>
+                <th>Movie Title</th>
+                <th>Year</th>
+                <th>Rating</th>
+            </tr>
+        </thead>
+        <tbody id="movieTableBody">
+            
+        </tbody>
+    </table>
+
+    <script>
+        // Get region from URL 
+        const urlParams = new URLSearchParams(window.location.search);
+        const region = urlParams.get('region');
+
+       
+        document.getElementById('regionTitle').textContent = `Movies from ${region}`;
+
+      
+        d3.csv("./map_data/movie_data.csv").then(data => {
+            
+            const regionMovies = data.filter(movie => movie.region === region);
+
+            
+            const tableBody = d3.select("#movieTableBody");
+            regionMovies.forEach(movie => {
+                tableBody.append("tr")
+                    .html(`
+                        <td>${movie.title}</td>
+                        <td>${movie.year}</td>
+                        <td>${movie.rating}</td>
+                    `);
+            });
+        });
+    </script>
+</body>
+</html>
