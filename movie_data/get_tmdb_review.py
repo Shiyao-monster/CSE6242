@@ -2,6 +2,8 @@
 import requests
 import json
 import pandas as pd
+import concurrent.futures
+
 
 class  TMDBAPIUtils:
 
@@ -32,7 +34,7 @@ class  TMDBAPIUtils:
         moive_list = []
      
         #https://www.themoviedb.org/talk/51b8d148760ee309a50c8a3d
-        url = f"https://api.themoviedb.org/3/discover/movie?language=en-US&page={page}&sort_by=vote_average.desc&certification_country={region_code}&certification.lte=R"
+        url = f"https://api.themoviedb.org/3/discover/movie?language=en-US&page={page}&sort_by=vote_average.desc&with_origin_country={region_code}"
 
         response = requests.get(url, headers=self.api_headers)
         response = json.loads(response.text)
@@ -42,8 +44,7 @@ class  TMDBAPIUtils:
     def get_top_popular_movies_by_region(self, region_code="US",page=1):
         moive_list = []
 
-        #url = f"https://api.themoviedb.org/3/discover/movie?language=en-US&page={page}&sort_by=popularity.desc&with_origin_country={region_code}"
-        url = f"https://api.themoviedb.org/3/discover/movie?language=en-US&page={page}&sort_by=popularity.desc&certification_country={region_code}&certification.lte=R"
+        url = f"https://api.themoviedb.org/3/discover/movie?language=en-US&page={page}&sort_by=popularity.desc&with_origin_country={region_code}"
 
         response = requests.get(url, headers=self.api_headers)
         response = json.loads(response.text)
@@ -54,42 +55,45 @@ class  TMDBAPIUtils:
         url = f"https://api.themoviedb.org/3/movie/{movie_id}/reviews?language=en-US&page=1"
         response = requests.get(url, headers=self.api_headers)
         response =  json.loads(response.text)
-        review_list = response["results"]
-        count = len(review_list)
-        total_reviews = response["total_results"]
-        page = 2
-        while count < total_reviews and count < num_reviews:
-            url = f"https://api.themoviedb.org/3/movie/{movie_id}/reviews?language=en-US&page={page}"
-            response = requests.get(url, headers=self.api_headers)
-            response =  json.loads(response.text)
-            review_list.extend(response["results"])
+        try:
+            review_list = response["results"]
             count = len(review_list)
-            page+=1
-        return [review["content"] for review in review_list]
+            total_reviews = response["total_results"]
+            page = 2
+            while count < total_reviews and count < num_reviews:
+                url = f"https://api.themoviedb.org/3/movie/{movie_id}/reviews?language=en-US&page={page}"
+                response = requests.get(url, headers=self.api_headers)
+                response =  json.loads(response.text)
+                review_list.extend(response["results"])
+                count = len(review_list)
+                page+=1
+            return [review["content"] for review in review_list]
+        except:
+            return []
     
     def get_movie_poster(self, poster_path):
         return f"https://image.tmdb.org/t/p/w500{poster_path}"
-
-    def main_process(self):
+    
+    def process_region(self, region):
         movie_data = []
         review_size = []
-        regions = self.get_available_regions()
-        for region in regions:
-            region_code  = region["iso_3166_1"]
-            print(region_code)
-            region_movie_size = 0
-            region_movie_page = 0
-            while region_movie_size < 30:
-                region_movie_page+=1
-                movie_list = self.get_top_popular_movies_by_region(region_code, page=region_movie_page)
-                if movie_list == []:
-                    break
-                for movie in movie_list:
-                    review_list = self.get_movie_reviews(movie["id"])
-                    if len(review_list) < 10:
-                        continue
-                    review_size.append(len(review_list))
-                    movie_info = {
+
+        region_code = region["iso_3166_1"]
+        print(region_code)
+        region_movie_size = 0
+        region_movie_page = 0
+
+        while region_movie_size < 30:
+            region_movie_page += 1
+            movie_list = self.get_top_popular_movies_by_region(region_code, page=region_movie_page)
+            if not movie_list:
+                break
+            for movie in movie_list:
+                review_list = self.get_movie_reviews(movie["id"])
+                if len(review_list) < 5:
+                    continue
+                review_size.append(len(review_list))
+                movie_info = {
                     "movie_id": movie.get("id"),
                     "movie_title": movie.get("title"),
                     "release_date": movie.get("release_date"),
@@ -99,25 +103,37 @@ class  TMDBAPIUtils:
                     "vote_count": movie.get("vote_count"),
                     "review_list": review_list,
                     "overview": movie.get("overview")
-                    }
-                    movie_data.append(movie_info)
-                    region_movie_size +=1
-        
-        with open("movie_data.json", "w", encoding="utf-8") as json_file:
-            json.dump(movie_data, json_file)
+                }
+                movie_data.append(movie_info)
+                region_movie_size += 1
+
+        return movie_data, review_size
+
+    def main_process(self):
+        regions = self.get_available_regions()
+        all_movie_data = []
+        all_review_sizes = []
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [executor.submit(self.process_region, region) for region in regions]
+            for future in concurrent.futures.as_completed(futures):
+                movie_data, review_size = future.result()
+                all_movie_data.extend(movie_data)
+                all_review_sizes.extend(review_size)
+
+        with open("movie_data_parrallel.json", "w", encoding="utf-8") as json_file:
+            json.dump(all_movie_data, json_file)
+
         print("finished")
-        print("review_size: ", review_size)
+        print("review_size: ", all_review_sizes)
         
-            
-
-
 
 if __name__ == "__main__":
 
     
     headers = {
             "accept": "application/json",
-            "Authorization": "Bearer XXXX" #add your Authoriztion
+            "Authorization": "Bearer XXXXX" #add your Authoriztion token
     }
     tmdb_api_utils = TMDBAPIUtils(headers)
 
