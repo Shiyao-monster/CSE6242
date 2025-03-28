@@ -31,7 +31,7 @@
         <thead>
             <tr>
                 <th>Movie Title</th>
-                <th>Year</th>
+                <th>Release Date</th>
                 <th>Rating</th>
             </tr>
         </thead>
@@ -41,28 +41,32 @@
     </table>
 
     <script>
-        // Get region from URL 
+        // 从 URL 中获取 region 参数
         const urlParams = new URLSearchParams(window.location.search);
         const region = urlParams.get('region');
+        
+        const regionMapping = {
+            "USA": "United States of America",
+            "England": "United Kingdom"
+        };
+        const normalizedRegion = regionMapping[region] || region;
+        
+        document.getElementById('regionTitle').textContent = `Movies from ${normalizedRegion}`;
 
-       
-        document.getElementById('regionTitle').textContent = `Movies from ${region}`;
-
-      
-        d3.csv("./map_data/movie_data.csv").then(data => {
-            
-            const regionMovies = data.filter(movie => movie.region === region);
-
+        d3.json("./map_data/movie_data.json").then(data => {
+            const regionMovies = data.filter(movie => movie.region === normalizedRegion);
             
             const tableBody = d3.select("#movieTableBody");
             regionMovies.forEach(movie => {
                 tableBody.append("tr")
                     .html(`
-                        <td>${movie.title}</td>
-                        <td>${movie.year}</td>
-                        <td>${movie.rating}</td>
+                        <td>${movie.movie_title}</td>
+                        <td>${movie.release_date}</td>
+                        <td>${movie.movie_rate}</td>
                     `);
             });
+        }).catch(error => {
+            console.error("Error loading JSON data:", error);
         });
     </script>
 </body>
