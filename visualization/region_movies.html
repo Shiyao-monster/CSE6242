@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Region Movie Details</title>
+    <title>Region Movies List</title>
     <script type="text/javascript" src="../lib/d3.v5.min.js"></script>
     <style>
         body {
@@ -45,35 +45,41 @@
         </tbody>
     </table>
 
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const region = urlParams.get('region');
-        
-        const regionMapping = {
-            "USA": "United States of America",
-            "England": "United Kingdom"
-        };
-        const normalizedRegion = regionMapping[region] || region;
-        
-        document.getElementById('regionTitle').textContent = `Movies from ${normalizedRegion}`;
 
-        d3.json("./map_data/movie_data.json").then(data => {
-            const regionMovies = data.filter(movie => movie.region === normalizedRegion);
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const region = urlParams.get('region');
+    
+    const regionMapping = {
+        "USA": "United States of America",
+        "England": "United Kingdom"
+    };
+    const normalizedRegion = regionMapping[region] || region;
+    
+    document.getElementById('regionTitle').textContent = `Movies from ${normalizedRegion}`;
+
+    d3.json("./map_data/movie_data_with_scripts.json").then(data => {
+        const regionMovies = data.filter(movie => movie.region === normalizedRegion);
+        
+        const tableBody = d3.select("#movieTableBody");
+        regionMovies.forEach(movie => {
+            const row = tableBody.append("tr")
+                .style("cursor", "pointer")  
+                .on("click", () => {
+                    window.location.href = `movie_detail.html?id=${movie.movie_id}`;
+                });
             
-            const tableBody = d3.select("#movieTableBody");
-            regionMovies.forEach(movie => {
-                tableBody.append("tr")
-                    .html(`
-                        <td><img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.movie_title} poster" /></td>
-                        <td>${movie.movie_title}</td>
-                        <td>${movie.release_date}</td>
-                        <td>${movie.movie_rate.toFixed(2)}</td>
-                        <td>${movie.vote_count}</td>
-                    `);
-            });
-        }).catch(error => {
-            console.error("Error loading JSON data:", error);
+            row.html(`
+                <td><img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.movie_title} poster" /></td>
+                <td>${movie.movie_title}</td>
+                <td>${movie.release_date}</td>
+                <td>${movie.movie_rate.toFixed(2)}</td>
+                <td>${movie.vote_count}</td>
+            `);
         });
-    </script>
+    }).catch(error => {
+        console.error("Error loading JSON data:", error);
+    });
+</script>
 </body>
 </html>
