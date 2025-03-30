@@ -125,7 +125,7 @@ class  TMDBAPIUtils:
             json.dump(all_movie_data, json_file)
 
         print("finished")
-        print("review_size: ", all_review_sizes)
+        # print("review_size: ", all_review_sizes)
         
 
 if __name__ == "__main__":
