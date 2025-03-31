@@ -1,2 +1,2 @@
 # CSE6242
-Default site: <https://shiyao-monster.github.io/CSE6242/visualization/movie_map.html>
+Default site: <https://shiyao-monster.github.io/CSE6242/index.html>
