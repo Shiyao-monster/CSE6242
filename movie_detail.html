@@ -28,7 +28,6 @@
     .movie-info {
       flex-grow: 1;
     }
-    /* Fancy emotion selection area (in English) */
     #emotionSelection {
       border: 2px solid #aaa;
       border-radius: 8px;
@@ -72,14 +71,20 @@
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .chart-container {
+    .chart-row {
       display: flex;
       justify-content: space-around;
       margin-top: 20px;
     }
+    .chart-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
     .chart {
       width: 300px;
       height: 300px;
+      margin: 10px;
     }
     .reviews-section {
       margin-top: 20px;
@@ -118,9 +123,33 @@
     .expand-btn.expanded::before {
       content: '▲ ';
     }
+    /* 新增的用户选择情绪显示样式 */
+    #userSelectedEmotions {
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 5px;
+      padding: 15px;
+      margin-bottom: 20px;
+      text-align: center;
+      display: none;
+    }
+    #userSelectedEmotions h3 {
+      margin-top: 0;
+      color: #495057;
+    }
+    .selected-emotion-tag {
+      display: inline-block;
+      background-color: #4c78a8;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 15px;
+      margin: 5px;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
+  <!-- 保持之前的HTML结构不变 -->
   <div id="movieDetailContainer">
     <div class="movie-header">
       <img id="moviePoster" class="movie-poster" src="" alt="Movie Poster">
@@ -133,7 +162,6 @@
       </div>
     </div>
 
-    <!-- Emotion selection area-->
     <div id="emotionSelection">
       <h2>Which emotions did this movie evoke in you? (Select all that apply)</h2>
       <label><input type="checkbox" name="emotion" value="Fear"> Fear</label>
@@ -146,15 +174,27 @@
       <button id="emotionSubmit">Submit</button>
     </div>
 
+    <!-- 新增的用户选择情绪显示区域 -->
+    <div id="userSelectedEmotions">
+      <h3>Your Selected Emotions</h3>
+      <div id="selectedEmotionsList"></div>
+    </div>
+
     <div id="chartsSection">
-      <div class="chart-container">
-        <div>
+      <div class="chart-row">
+        <div class="chart-column">
           <h2>Subtitle Emotion Analysis</h2>
           <div id="scriptEmotionChart" class="chart"></div>
         </div>
-        <div>
+        <div class="chart-column">
           <h2>Review Emotion Analysis</h2>
           <div id="reviewEmotionChart" class="chart"></div>
+        </div>
+      </div>
+      <div class="chart-row">
+        <div class="chart-column">
+          <h2>Video Emotion Analysis</h2>
+          <div id="videoEmotionChart" class="chart"></div>
         </div>
       </div>
     </div>
@@ -172,7 +212,6 @@
   </div>
 
   <script>
-    // Pie chart drawing function: place labels toward the outer area inside the sectors
     function createPieChart(containerId, data) {
       const width = 450;
       const height = 300;
@@ -198,7 +237,11 @@
         "#e45756",
         "#72b7b2",
         "#54a24b",
-        "#eeca3b"
+        "#eeca3b",
+        "#b279a2",
+        "#ff9da6",
+        "#9d755d",
+        "#bab0ac"
       ];
       const color = d3.scaleOrdinal(colorPalette);
 
@@ -269,19 +312,56 @@
         + suffix;
     }
 
+    function mapVideoEmotions(videoData) {
+      const totalScore = 
+        videoData["Fearful / Scared / Afraid"] +
+        videoData["Sad / Downhearted / Blue"] +
+        videoData["Surprised / Amazed / Astonished"] +
+        videoData["Angry / Irritated / Mad"] +
+        videoData["Joyful / Amused / Happy"] +
+        videoData["Loving / Affectionate / Friendly"];
+      
+      return [
+        { 
+          emotion: "Fear", 
+          value: videoData["Fearful / Scared / Afraid"] / totalScore * 100
+        },
+        { 
+          emotion: "Sad", 
+          value: videoData["Sad / Downhearted / Blue"] / totalScore * 100
+        },
+        { 
+          emotion: "Surprise", 
+          value: videoData["Surprised / Amazed / Astonished"] / totalScore * 100
+        },
+        { 
+          emotion: "Angry", 
+          value: videoData["Angry / Irritated / Mad"] / totalScore * 100
+        },
+        { 
+          emotion: "Happy", 
+          value: videoData["Joyful / Amused / Happy"] / totalScore * 100
+        },
+        { 
+          emotion: "Love", 
+          value: videoData["Loving / Affectionate / Friendly"] / totalScore * 100
+        }
+      ];
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const movieId = urlParams.get('id');
 
     Promise.all([
       d3.json("./movie_data/clean_top5_movie_data_with_subtitle.json"),
       d3.csv("./movie_data/all_movies_subtitle_emotion_scores.csv"),
-      d3.csv("./movie_data/all_movies_reviews_emotion_scores.csv")
+      d3.csv("./movie_data/all_movies_reviews_emotion_scores.csv"),
+      d3.json("./movie_data/top5scores_by_nvila.json")
     ])
-    .then(([movieData, subtitleData, reviewsData]) => {
+    .then(([movieData, subtitleData, reviewsData, videoData]) => {
       const movie = movieData.find(m => m.movie_id === parseInt(movieId));
       if (!movie) return;
 
-      // Fill movie basic information
       document.getElementById('moviePoster').src = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
       document.getElementById('movieTitle').textContent = movie.movie_title;
       document.getElementById('movieOverview').textContent = movie.overview;
@@ -329,16 +409,46 @@
         ];
       }
 
+      let videoEmotions = null;
+      const videoRow = videoData[movieId];
+      if (videoRow) {
+        videoEmotions = mapVideoEmotions(videoRow);
+      }
+
       document.getElementById('chartsSection').style.display = 'none';
+      document.getElementById('userSelectedEmotions').style.display = 'none';
 
       const emotionSubmitBtn = document.getElementById('emotionSubmit');
       emotionSubmitBtn.addEventListener('click', () => {
+        // 获取用户选择的情绪
+        const selectedEmotions = [];
+        document.querySelectorAll('input[name="emotion"]:checked').forEach(checkbox => {
+          selectedEmotions.push(checkbox.value);
+        });
+        
+        // 显示用户选择的情绪
+        if (selectedEmotions.length > 0) {
+          const selectedEmotionsList = document.getElementById('selectedEmotionsList');
+          selectedEmotionsList.innerHTML = '';
+          selectedEmotions.forEach(emotion => {
+            const tag = document.createElement('span');
+            tag.className = 'selected-emotion-tag';
+            tag.textContent = emotion;
+            selectedEmotionsList.appendChild(tag);
+          });
+          document.getElementById('userSelectedEmotions').style.display = 'block';
+        }
+        
+        // 显示图表区域
         document.getElementById('chartsSection').style.display = 'block';
         if (scriptEmotions) {
           createPieChart('scriptEmotionChart', scriptEmotions);
         }
         if (reviewEmotions) {
           createPieChart('reviewEmotionChart', reviewEmotions);
+        }
+        if (videoEmotions) {
+          createPieChart('videoEmotionChart', videoEmotions);
         }
         document.getElementById('emotionSelection').style.display = 'none';
       });
@@ -374,10 +484,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
