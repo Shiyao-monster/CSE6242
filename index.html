@@ -20,7 +20,7 @@
             color: white;
             pointer-events: none;
         }
-        h1 {text-align: center;}
+        h1 { text-align: center; }
         
         /* Added styles for region movies section */
         #regionMoviesSection {
@@ -51,10 +51,9 @@
     <h1>Top 5 Popularity Movies by Region</h1>
     <p>We only select the movies which have reviews and subtitle scripts in TMDB and Open-Subtitle dataset</p>
 
-
     <script>
         // Margin and dimensions
-        const margin = ({top: 50, right: 50, bottom: 50, left: 50});
+        const margin = {top: 50, right: 50, bottom: 50, left: 50};
         const height = 600, width = 1200;
 
         // Create SVG
@@ -62,42 +61,37 @@
             .append("svg")
             .attr("id", "choropleth")
             .attr("width", width)
-            .attr("height", height);        
+            .attr("height", height);
 
-  
         const ratingColors = ["#c7e9c0", "#a1d99b","#41ab5d", "#005a32"];
 
-        
         const tip = d3.tip()
             .attr("id", "tooltip")
             .attr('class', 'tip_class')
-            .offset([-5, -5]) 
+            .offset([-5, -5])
             .html((cur_country_data, map_event) => {
                 if (cur_country_data) {
-                    return Region: ${cur_country_data.region}<br>
-                    Number of Movies: ${cur_country_data.num_movie}<br>
-                    Average Rating: ${Number(cur_country_data.average_rate).toFixed(2)}
+                    return `Region: ${cur_country_data.region}<br>
+Number of Movies: ${cur_country_data.num_movie}<br>
+Average Rating: ${Number(cur_country_data.average_rate).toFixed(2)}`;
                 } else {
-                    return Region: ${map_event.properties.name}<br>
-                    No Data Available
+                    return `Region: ${map_event.properties.name}<br>
+No Data Available`;
                 }
             });
-        svg.call(tip)
+        svg.call(tip);
 
-        
         var projection = d3.geoNaturalEarth().translate([width/2, height/2]).scale(200);
         var path = d3.geoPath().projection(projection);
 
-       
         Promise.all([
             d3.csv("./map_data/movie_map_data_top5.csv"),
-            d3.json("./map_data/world_countries.json"),       
+            d3.json("./map_data/world_countries.json")
         ]).then(([movieData, world]) => {
-            createMapAndLegend(world, movieData)
+            createMapAndLegend(world, movieData);
         });
         
         function createMapAndLegend(world, movieData){ 
-            
             const ratingValues = movieData.map(d => +d.average_rate);
             const colorScale = d3.scaleQuantile()
                 .domain(ratingValues)
@@ -142,16 +136,16 @@
             let max_rating = d3.max(ratingValues).toFixed(2);
             let legend_text = quantiles.length > 0 
                 ? [
-                    ${min_rating} to ${quantiles[0]}, 
-                    ${quantiles[0]} to ${quantiles[1]}, 
-                    ${quantiles[1]} to ${quantiles[2]}, 
-                    ${quantiles[2]} to ${max_rating}
+                    `${min_rating} to ${quantiles[0]}`, 
+                    `${quantiles[0]} to ${quantiles[1]}`, 
+                    `${quantiles[1]} to ${quantiles[2]}`, 
+                    `${quantiles[2]} to ${max_rating}`
                 ]
-                : [${min_rating} to ${max_rating}];
+                : [`${min_rating} to ${max_rating}`];
 
             let legend = svg.append("g")
                 .attr("id", "legend")
-                .attr("transform", translate(${width-2*margin.right -20}, ${20}));
+                .attr("transform", `translate(${width - 2 * margin.right - 20}, ${20})`);
 
             let legendScale = d3.scaleOrdinal()
                 .domain(legend_text)
@@ -179,11 +173,187 @@
             tableBody.innerHTML = '';
             
             // Map region names if needed
-            const regionMapping ={'United Arab Emirates': 'United Arab Emirates', 'Afghanistan': 'Afghanistan', 'Albania': 'Albania', 'Armenia': 'Armenia', 'Angola': 'Angola', 'Antarctica': 'Antarctica', 'Argentina': 'Argentina', 'Austria': 'Austria', 'Australia': 'Australia', 'Azerbaijan': 'Azerbaijan', 'Bosnia and Herzegovina': 'Bosnia and Herzegovina', 'Bangladesh': 'Bangladesh', 'Belgium': 'Belgium', 'Burkina Faso': 'Burkina Faso', 'Bulgaria': 'Bulgaria', 'Burundi': 'Burundi', 'Benin': 'Benin', 'Brunei': 'Brunei Darussalam', 'Bolivia': 'Bolivia', 'Brazil': 'Brazil', 'The Bahamas': 'Bahamas', 'Bhutan': 'Bhutan', 'Myanmar': 'Myanmar', 'Botswana': 'Botswana', 'Belarus': 'Belarus', 'Belize': 'Belize', 'Canada': 'Canada', 'Republic of the Congo': 'Congo', 'Central African Republic': 'Central African Republic', 'Switzerland': 'Switzerland', 'Ivory Coast': "Cote D'Ivoire", 'Chile': 'Chile', 'Cameroon': 'Cameroon', 'China': 'China', 'Colombia': 'Colombia', 'Costa Rica': 'Costa Rica', 'Cuba': 'Cuba', 'Cyprus': 'Cyprus', 'Czech Republic': 'Czech Republic', 'Germany': 'Germany', 'Djibouti': 'Djibouti', 'Denmark': 'Denmark', 'Dominican Republic': 'Dominican Republic', 'Algeria': 'Algeria', 'Ecuador': 'Ecuador', 'Estonia': 'Estonia', 'Egypt': 'Egypt', 'Western Sahara': 'Western Sahara', 'Eritrea': 'Eritrea', 'Spain': 'Spain', 'Ethiopia': 'Ethiopia', 'Finland': 'Finland', 'Fiji': 'Fiji', 'Falkland Islands': 'Falkland Islands', 'France': 'France', 'Gabon': 'Gabon', 'England': 'United Kingdom', 'Georgia': 'Georgia', 'Ghana': 'Ghana', 'Greenland': 'Greenland', 'Gambia': 'Gambia', 'Guinea': 'Guinea', 'Equatorial Guinea': 'Equatorial Guinea', 'Greece': 'Greece', 'Guatemala': 'Guatemala', 'Guinea Bissau': 'Guinea-Bissau', 'Guyana': 'Guyana', 'Honduras': 'Honduras', 'Croatia': 'Croatia', 'Haiti': 'Haiti', 'Hungary': 'Hungary', 'Indonesia': 'Indonesia', 'Ireland': 'Ireland', 'Israel': 'Israel', 'India': 'India', 'Iraq': 'Iraq', 'Iran': 'Iran', 'Iceland': 'Iceland', 'Italy': 'Italy', 'Jamaica': 'Jamaica', 'Jordan': 'Jordan', 'Japan': 'Japan', 'Kenya': 'Kenya', 'Kyrgyzstan': 'Kyrgyz Republic', 'Cambodia': 'Cambodia', 'North Korea': 'North Korea', 'South Korea': 'South Korea', 'Kuwait': 'Kuwait', 'Kazakhstan': 'Kazakhstan', 'Laos': "Lao People's Democratic Republic", 'Lebanon': 'Lebanon', 'Sri Lanka': 'Sri Lanka', 'Liberia': 'Liberia', 'Lesotho': 'Lesotho', 'Lithuania': 'Lithuania', 'Luxembourg': 'Luxembourg', 'Latvia': 'Latvia', 'Libya': 'Libyan Arab Jamahiriya', 'Morocco': 'Morocco', 'Moldova': 'Moldova', 'Montenegro': 'Montenegro', 'Madagascar': 'Madagascar', 'Macedonia': 'Macedonia', 'Mali': 'Mali', 'Mongolia': 'Mongolia', 'Mauritania': 'Mauritania', 'Malawi': 'Malawi', 'Mexico': 'Mexico', 'Malaysia': 'Malaysia', 'Mozambique': 'Mozambique', 'Namibia': 'Namibia', 'New Caledonia': 'New Caledonia', 'Niger': 'Niger', 'Nigeria': 'Nigeria', 'Nicaragua': 'Nicaragua', 'Netherlands': 'Netherlands', 'Norway': 'Norway', 'Nepal': 'Nepal', 'New Zealand': 'New Zealand', 'Oman': 'Oman', 'Panama': 'Panama', 'Peru': 'Peru', 'Papua New Guinea': 'Papua New Guinea', 'Philippines': 'Philippines', 'Pakistan': 'Pakistan', 'Poland': 'Poland', 'Puerto Rico': 'Puerto Rico', 'West Bank': 'Palestinian Territory', 'Portugal': 'Portugal', 'Paraguay': 'Paraguay', 'Qatar': 'Qatar', 'Romania': 'Romania', 'Republic of Serbia': 'Serbia', 'Russia': 'Russia', 'Rwanda': 'Rwanda', 'Saudi Arabia': 'Saudi Arabia', 'Solomon Islands': 'Solomon Islands', 'Sudan': 'Sudan', 'Sweden': 'Sweden', 'Slovenia': 'Slovenia', 'Slovakia': 'Slovakia', 'Sierra Leone': 'Sierra Leone', 'Senegal': 'Senegal', 'Somalia': 'Somalia', 'Suriname': 'Suriname', 'South Sudan': 'South Sudan', 'El Salvador': 'El Salvador', 'Syria': 'Syrian Arab Republic', 'Swaziland': 'Swaziland', 'Chad': 'Chad', 'French Southern and Antarctic Lands': 'French Southern Territories', 'Togo': 'Togo', 'Thailand': 'Thailand', 'Tajikistan': 'Tajikistan', 'East Timor': 'East Timor', 'Turkmenistan': 'Turkmenistan', 'Tunisia': 'Tunisia', 'Turkey': 'Turkey', 'Trinidad and Tobago': 'Trinidad and Tobago', 'Taiwan': 'Taiwan', 'United Republic of Tanzania': 'Tanzania', 'Ukraine': 'Ukraine', 'Uganda': 'Uganda', 'USA': 'United States of America', 'Uruguay': 'Uruguay', 'Uzbekistan': 'Uzbekistan', 'Venezuela': 'Venezuela', 'Vietnam': 'Vietnam', 'Vanuatu': 'Vanuatu', 'Kosovo': 'Kosovo', 'Yemen': 'Yemen', 'South Africa': 'South Africa', 'Zambia': 'Zambia', 'Democratic Republic of the Congo': 'Zaire', 'Zimbabwe': 'Zimbabwe'}
+            const regionMapping = {
+                'United Arab Emirates': 'United Arab Emirates',
+                'Afghanistan': 'Afghanistan',
+                'Albania': 'Albania',
+                'Armenia': 'Armenia',
+                'Angola': 'Angola',
+                'Antarctica': 'Antarctica',
+                'Argentina': 'Argentina',
+                'Austria': 'Austria',
+                'Australia': 'Australia',
+                'Azerbaijan': 'Azerbaijan',
+                'Bosnia and Herzegovina': 'Bosnia and Herzegovina',
+                'Bangladesh': 'Bangladesh',
+                'Belgium': 'Belgium',
+                'Burkina Faso': 'Burkina Faso',
+                'Bulgaria': 'Bulgaria',
+                'Burundi': 'Burundi',
+                'Benin': 'Benin',
+                'Brunei': 'Brunei Darussalam',
+                'Bolivia': 'Bolivia',
+                'Brazil': 'Brazil',
+                'The Bahamas': 'Bahamas',
+                'Bhutan': 'Bhutan',
+                'Myanmar': 'Myanmar',
+                'Botswana': 'Botswana',
+                'Belarus': 'Belarus',
+                'Belize': 'Belize',
+                'Canada': 'Canada',
+                'Republic of the Congo': 'Congo',
+                'Central African Republic': 'Central African Republic',
+                'Switzerland': 'Switzerland',
+                'Ivory Coast': "Cote D'Ivoire",
+                'Chile': 'Chile',
+                'Cameroon': 'Cameroon',
+                'China': 'China',
+                'Colombia': 'Colombia',
+                'Costa Rica': 'Costa Rica',
+                'Cuba': 'Cuba',
+                'Cyprus': 'Cyprus',
+                'Czech Republic': 'Czech Republic',
+                'Germany': 'Germany',
+                'Djibouti': 'Djibouti',
+                'Denmark': 'Denmark',
+                'Dominican Republic': 'Dominican Republic',
+                'Algeria': 'Algeria',
+                'Ecuador': 'Ecuador',
+                'Estonia': 'Estonia',
+                'Egypt': 'Egypt',
+                'Western Sahara': 'Western Sahara',
+                'Eritrea': 'Eritrea',
+                'Spain': 'Spain',
+                'Ethiopia': 'Ethiopia',
+                'Finland': 'Finland',
+                'Fiji': 'Fiji',
+                'Falkland Islands': 'Falkland Islands',
+                'France': 'France',
+                'Gabon': 'Gabon',
+                'England': 'United Kingdom',
+                'Georgia': 'Georgia',
+                'Ghana': 'Ghana',
+                'Greenland': 'Greenland',
+                'Gambia': 'Gambia',
+                'Guinea': 'Guinea',
+                'Equatorial Guinea': 'Equatorial Guinea',
+                'Greece': 'Greece',
+                'Guatemala': 'Guatemala',
+                'Guinea Bissau': 'Guinea-Bissau',
+                'Guyana': 'Guyana',
+                'Honduras': 'Honduras',
+                'Croatia': 'Croatia',
+                'Haiti': 'Haiti',
+                'Hungary': 'Hungary',
+                'Indonesia': 'Indonesia',
+                'Ireland': 'Ireland',
+                'Israel': 'Israel',
+                'India': 'India',
+                'Iraq': 'Iraq',
+                'Iran': 'Iran',
+                'Iceland': 'Iceland',
+                'Italy': 'Italy',
+                'Jamaica': 'Jamaica',
+                'Jordan': 'Jordan',
+                'Japan': 'Japan',
+                'Kenya': 'Kenya',
+                'Kyrgyzstan': 'Kyrgyz Republic',
+                'Cambodia': 'Cambodia',
+                'North Korea': 'North Korea',
+                'South Korea': 'South Korea',
+                'Kuwait': 'Kuwait',
+                'Kazakhstan': 'Kazakhstan',
+                'Laos': "Lao People's Democratic Republic",
+                'Lebanon': 'Lebanon',
+                'Sri Lanka': 'Sri Lanka',
+                'Liberia': 'Liberia',
+                'Lesotho': 'Lesotho',
+                'Lithuania': 'Lithuania',
+                'Luxembourg': 'Luxembourg',
+                'Latvia': 'Latvia',
+                'Libya': 'Libyan Arab Jamahiriya',
+                'Morocco': 'Morocco',
+                'Moldova': 'Moldova',
+                'Montenegro': 'Montenegro',
+                'Madagascar': 'Madagascar',
+                'Macedonia': 'Macedonia',
+                'Mali': 'Mali',
+                'Mongolia': 'Mongolia',
+                'Mauritania': 'Mauritania',
+                'Malawi': 'Malawi',
+                'Mexico': 'Mexico',
+                'Malaysia': 'Malaysia',
+                'Mozambique': 'Mozambique',
+                'Namibia': 'Namibia',
+                'New Caledonia': 'New Caledonia',
+                'Niger': 'Niger',
+                'Nigeria': 'Nigeria',
+                'Nicaragua': 'Nicaragua',
+                'Netherlands': 'Netherlands',
+                'Norway': 'Norway',
+                'Nepal': 'Nepal',
+                'New Zealand': 'New Zealand',
+                'Oman': 'Oman',
+                'Panama': 'Panama',
+                'Peru': 'Peru',
+                'Papua New Guinea': 'Papua New Guinea',
+                'Philippines': 'Philippines',
+                'Pakistan': 'Pakistan',
+                'Poland': 'Poland',
+                'Puerto Rico': 'Puerto Rico',
+                'West Bank': 'Palestinian Territory',
+                'Portugal': 'Portugal',
+                'Paraguay': 'Paraguay',
+                'Qatar': 'Qatar',
+                'Romania': 'Romania',
+                'Republic of Serbia': 'Serbia',
+                'Russia': 'Russia',
+                'Rwanda': 'Rwanda',
+                'Saudi Arabia': 'Saudi Arabia',
+                'Solomon Islands': 'Solomon Islands',
+                'Sudan': 'Sudan',
+                'Sweden': 'Sweden',
+                'Slovenia': 'Slovenia',
+                'Slovakia': 'Slovakia',
+                'Sierra Leone': 'Sierra Leone',
+                'Senegal': 'Senegal',
+                'Somalia': 'Somalia',
+                'Suriname': 'Suriname',
+                'South Sudan': 'South Sudan',
+                'El Salvador': 'El Salvador',
+                'Syria': 'Syrian Arab Republic',
+                'Swaziland': 'Swaziland',
+                'Chad': 'Chad',
+                'French Southern and Antarctic Lands': 'French Southern Territories',
+                'Togo': 'Togo',
+                'Thailand': 'Thailand',
+                'Tajikistan': 'Tajikistan',
+                'East Timor': 'East Timor',
+                'Turkmenistan': 'Turkmenistan',
+                'Tunisia': 'Tunisia',
+                'Turkey': 'Turkey',
+                'Trinidad and Tobago': 'Trinidad and Tobago',
+                'Taiwan': 'Taiwan',
+                'United Republic of Tanzania': 'Tanzania',
+                'Ukraine': 'Ukraine',
+                'Uganda': 'Uganda',
+                'USA': 'United States of America',
+                'Uruguay': 'Uruguay',
+                'Uzbekistan': 'Uzbekistan',
+                'Venezuela': 'Venezuela',
+                'Vietnam': 'Vietnam',
+                'Vanuatu': 'Vanuatu',
+                'Kosovo': 'Kosovo',
+                'Yemen': 'Yemen',
+                'South Africa': 'South Africa',
+                'Zambia': 'Zambia',
+                'Democratic Republic of the Congo': 'Zaire',
+                'Zimbabwe': 'Zimbabwe'
+            };
             const normalizedRegion = regionMapping[region] || region;
             
             // Update region title
-            document.getElementById('regionTitle').textContent = Movies from ${normalizedRegion};
+            document.getElementById('regionTitle').textContent = `Movies from ${normalizedRegion}`;
             
             // Scroll to the section
             regionMoviesSection.scrollIntoView({ behavior: 'smooth' });
@@ -195,24 +365,24 @@
                 const tableBody = d3.select("#movieTableBody");
                 regionMovies.forEach(movie => {
                     const row = tableBody.append("tr")
-                        .style("cursor", "pointer")  
+                        .style("cursor", "pointer")
                         .on("click", () => {
-                            window.location.href = movie_detail.html?id=${movie.movie_id};
+                            window.location.href = `movie_detail.html?id=${movie.movie_id}`;
                         });
                     
-                    row.html(
+                    row.html(`
                         <td><img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.movie_title} poster" /></td>
                         <td>${movie.movie_title}</td>
                         <td>${movie.popularity}</td>
                         <td>${movie.release_date}</td>
                         <td>${movie.movie_rate.toFixed(2)}</td>
                         <td>${movie.vote_count}</td>
-                    );
+                    `);
                 });
             }).catch(error => {
                 console.error("Error loading JSON data:", error);
                 document.getElementById('movieTableBody').innerHTML = 
-                    <tr><td colspan="5">Error loading movie data: ${error.message}</td></tr>;
+                    `<tr><td colspan="6">Error loading movie data: ${error.message}</td></tr>`;
             });
         }
     </script>
