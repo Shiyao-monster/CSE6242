@@ -264,6 +264,7 @@
         .replace(/:\s*/g, "__")
         .replace(/&\s*/g, "__")
         .replace(/'\s*/g, "_")
+        .replace(/,\s*/g, "_")
         .replace(/\s+/g, "_")
         + suffix;
     }
