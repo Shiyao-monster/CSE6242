@@ -1,3 +1,4 @@
+您说：
 <!DOCTYPE html>
 <meta charset="utf-8">
 <head>
@@ -151,7 +152,7 @@
 
             let legend = svg.append("g")
                 .attr("id", "legend")
-                .attr("transform", translate(${width-2*margin.right - 20}, ${20}));
+                .attr("transform", translate(${width-2*margin.right}, ${20}));
 
             let legendScale = d3.scaleOrdinal()
                 .domain(legend_text)
