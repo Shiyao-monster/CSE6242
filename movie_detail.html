@@ -65,7 +65,6 @@
     #emotionSelection button:hover {
       background-color: #3b5f85;
     }
-    /* 图表区域 */
     #chartsSection {
       display: none;
       background-color: #fff;
@@ -134,7 +133,7 @@
       </div>
     </div>
 
-    <!-- Emotion selection area (English & fancy style) -->
+    <!-- Emotion selection area-->
     <div id="emotionSelection">
       <h2>What type of movie do you think this is? (Select all that apply)</h2>
       <label><input type="checkbox" name="emotion" value="Fear"> Fear</label>
@@ -147,7 +146,6 @@
       <button id="emotionSubmit">Submit</button>
     </div>
 
-    <!-- Charts section: initially hidden -->
     <div id="chartsSection">
       <div class="chart-container">
         <div>
@@ -212,7 +210,6 @@
         .innerRadius(0)
         .outerRadius(radius);
 
-      // Label arc: labels are placed on a circle at 75% of the radius
       const labelArc = d3.arc()
         .innerRadius(radius * 0.75)
         .outerRadius(radius * 0.75);
@@ -261,7 +258,6 @@
         .text(d => d.data.emotion);
     }
 
-    // CSV title formatting function
     function formatTitleForCSV(title, suffix) {
       return title
         .trim()
@@ -303,11 +299,9 @@
           : 'Show more';
       });
 
-      // Generate CSV matching keys
       const key1 = formatTitleForCSV(movie.movie_title, "_subtitle");
       const key2 = formatTitleForCSV(movie.movie_title, "_reviews");
 
-      // Construct emotion data arrays (complete 6 dimensions)
       let scriptEmotions = null;
       const subtitleRow = subtitleData.find(d => d.movie_title === key1);
       if (subtitleRow) {
@@ -334,26 +328,20 @@
         ];
       }
 
-      // Initially hide charts section; wait for user selection
       document.getElementById('chartsSection').style.display = 'none';
 
-      // Emotion selection interaction: regardless of checkboxes, display full 6-dimension charts on submit
       const emotionSubmitBtn = document.getElementById('emotionSubmit');
       emotionSubmitBtn.addEventListener('click', () => {
-        // Show charts section
         document.getElementById('chartsSection').style.display = 'block';
-        // Draw pie charts
         if (scriptEmotions) {
           createPieChart('scriptEmotionChart', scriptEmotions);
         }
         if (reviewEmotions) {
           createPieChart('reviewEmotionChart', reviewEmotions);
         }
-        // Hide emotion selection area
         document.getElementById('emotionSelection').style.display = 'none';
       });
 
-      // Process reviews section
       const movieReviews = movie.review_list;
       if (movieReviews && movieReviews.length > 0) {
         const reviewsContainer = document.getElementById('reviewsContainer');
